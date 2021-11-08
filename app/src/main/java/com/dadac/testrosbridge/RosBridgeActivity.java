@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -20,10 +19,6 @@ import com.jilk.ros.rosbridge.ROSBridgeClient;
 import com.jilk.ros.rosbridge.implementation.PublishEvent;
 
 import org.greenrobot.eventbus.EventBus;
-
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 /**

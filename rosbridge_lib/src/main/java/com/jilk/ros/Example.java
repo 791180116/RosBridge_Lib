@@ -23,7 +23,6 @@ import com.jilk.ros.message.Clock;
 import com.jilk.ros.message.Log;
 import com.jilk.ros.rosapi.message.Empty;
 import com.jilk.ros.rosapi.message.GetTime;
-import com.jilk.ros.rosapi.message.MessageDetails;
 import com.jilk.ros.rosapi.message.Type;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
 

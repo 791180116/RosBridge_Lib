@@ -25,7 +25,6 @@ import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.indication.Indication;
 import com.jilk.ros.rosbridge.operation.Wrapper;
 
-import java.io.StringReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 

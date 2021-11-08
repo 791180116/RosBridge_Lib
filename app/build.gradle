@@ -5,7 +5,7 @@ android {
     defaultConfig {
         applicationId "com.example.dadac.testrosbridge"
         minSdkVersion 15
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -39,7 +39,5 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     //implementation files('libs/json-simple-1.1.jar')
 
-    implementation 'com.alibaba:fastjson:1.2.78'
-    implementation 'org.greenrobot:eventbus:3.0.0'
-    implementation 'org.java-websocket:Java-WebSocket:1.5.2'
+    implementation project(path: ':rosbridge_lib')
 }

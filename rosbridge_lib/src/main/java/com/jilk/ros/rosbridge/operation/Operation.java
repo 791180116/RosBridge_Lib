@@ -66,12 +66,12 @@ public class Operation extends Message {
         initClass(registry, Unsubscribe.class);
         initClass(registry, Wrapper.class);
 
-        registry.register(Wrapper.class, Message.getMessageType(Publish.class), Publish.class);
-        registry.register(Wrapper.class, Message.getMessageType(CallService.class), CallService.class);
-        registry.register(Wrapper.class, Message.getMessageType(ServiceResponse.class), ServiceResponse.class);
+        registry.register(Wrapper.class, getMessageType(Publish.class), Publish.class);
+        registry.register(Wrapper.class, getMessageType(CallService.class), CallService.class);
+        registry.register(Wrapper.class, getMessageType(ServiceResponse.class), ServiceResponse.class);
     }    
     
     private static void initClass(Registry<Class> registry, Class<? extends Message> c) {
-        registry.register(Message.class, Message.getMessageType(c), c);
+        registry.register(Message.class, getMessageType(c), c);
     }
 }
