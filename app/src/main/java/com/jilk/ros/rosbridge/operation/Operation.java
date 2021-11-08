@@ -21,7 +21,7 @@ package com.jilk.ros.rosbridge.operation;
 
 import com.jilk.ros.message.Message;
 import com.jilk.ros.message.MessageType;
-import com.jilk.ros.rosbridge.implementation.JSON;
+import com.jilk.ros.rosbridge.implementation.RosJSONUtil;
 import com.jilk.ros.rosbridge.implementation.Registry;
 
 @MessageType(string = "operation")
@@ -43,11 +43,11 @@ public class Operation extends Message {
     }
     
     public String toJSON() {
-        return JSON.toJSON(this);
+        return RosJSONUtil.toJSON(this);
     }
     
     public static Operation toOperation(String json, Registry<Class> registry) {
-        return ((Wrapper) JSON.toMessage(json, Wrapper.class, registry)).msg;
+        return ((Wrapper) RosJSONUtil.toMessage(json, Wrapper.class, registry)).msg;
     }
     
     public static void initialize(Registry<Class> registry) {

@@ -19,13 +19,11 @@
  */
 package com.jilk.ros.rosbridge.implementation;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.indication.Indication;
 import com.jilk.ros.rosbridge.operation.Wrapper;
-
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import java.io.StringReader;
 import java.lang.reflect.Array;
@@ -50,7 +48,7 @@ import java.lang.reflect.Field;
 //    wraps the concrete operation and copies its "op" field.
 //    
 
-public class JSON {
+public class RosJSONUtil {
 
     /**
      * Translates a Message recursively into JSON. Normally the Message is also an
@@ -77,7 +75,7 @@ public class JSON {
      *              by the JSON string.
      */
     public static Message toMessage(String json, Class c, Registry<Class> r) {
-        JSONObject joUnwrapped = convertStringToJSONObject(json); // String to JSON-Simple
+        JSONObject joUnwrapped = com.alibaba.fastjson.JSON.parseObject(json); // String to JSON-Simple
         JSONObject jo = joUnwrapped;
         if (Wrapper.class.isAssignableFrom(c))
             jo = wrap(joUnwrapped, c);                            // wrap: a hack to make the hierarchy homogeneous
@@ -167,21 +165,6 @@ public class JSON {
     }        
     
     // *** Create Messages from JSON *** //
-    
-    // Use the JSON-simple parser to create the JSON-Simple object
-    private static JSONObject convertStringToJSONObject(String json) {
-        JSONObject result = null;
-        StringReader r = new StringReader(json);
-        JSONParser jp = new JSONParser();
-        try {
-            result = (JSONObject) jp.parse(r);
-        }
-        catch (Throwable t) {
-            System.out.println(t.getMessage());
-        }
-        r.close();        
-        return result;
-    }
     
     // A bit of a hack to create a consistent hierarchy with jsonbridge operations
     // At least it does not depend on any specific field names, it just copies the 

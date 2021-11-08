@@ -32,7 +32,7 @@ public class Example {
     public Example() {}
     
     public static void main(String[] args) {
-        ROSBridgeClient client = new ROSBridgeClient("ws://162.243.238.80:9090");
+        ROSBridgeClient client = new ROSBridgeClient("ws://172.16.3.194:9090");
         client.connect();
         //testTopic(client);
         try {
@@ -59,10 +59,10 @@ public class Example {
             serviceTypeService.verify();
             String type = serviceTypeService.callBlocking(new com.jilk.ros.rosapi.message.Service("/rosapi/service_response_details")).type;
             
-            Service<Type, MessageDetails> serviceDetails =
+            /*Service<Type, MessageDetails> serviceDetails =
                     new Service<Type, MessageDetails>("/rosapi/service_response_details",
                         Type.class, MessageDetails.class, client);
-            serviceDetails.verify();
+            serviceDetails.verify();*/
             //serviceDetails.callBlocking(new Type(type)).print();
             
             com.jilk.ros.Topic<Log> logTopic =

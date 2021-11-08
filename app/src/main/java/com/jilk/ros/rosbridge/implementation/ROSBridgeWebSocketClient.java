@@ -18,6 +18,8 @@
  */
 package com.jilk.ros.rosbridge.implementation;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.jilk.ros.ROSClient;
 import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.FullMessageHandler;
@@ -25,12 +27,10 @@ import com.jilk.ros.rosbridge.operation.Operation;
 import com.jilk.ros.rosbridge.operation.Publish;
 import com.jilk.ros.rosbridge.operation.ServiceResponse;
 
+import org.greenrobot.eventbus.EventBus;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.lang.reflect.Field;
 import java.net.Socket;
@@ -38,7 +38,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
 
-import de.greenrobot.event.EventBus;
 
 public class ROSBridgeWebSocketClient extends WebSocketClient {
     private Registry<Class> classes;
@@ -107,24 +106,21 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
                 System.out.print("No handler: id# " + operation.id + ", op:" + operation.op);
             if (operation instanceof Publish) {
                 Publish publish = ((Publish) operation);
-                JSONParser jsonParser = new JSONParser();
                 try {
-                    JSONObject jsonObject = (JSONObject) jsonParser.parse(message);
+                    JSONObject jsonObject = JSON.parseObject(message);
                     String content = jsonObject.get("msg").toString();
                     EventBus.getDefault().post(new PublishEvent(operation, publish.topic, content));
-                } catch (ParseException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-
                 System.out.println("Publish " + publish.topic);
             } else if (operation instanceof ServiceResponse) {
                 ServiceResponse serviceResponse = ((ServiceResponse) operation);
-                JSONParser jsonParser = new JSONParser();
                 try {
-                    JSONObject jsonObject = (JSONObject) jsonParser.parse(message);
+                    JSONObject jsonObject = JSON.parseObject(message);
                     String content = jsonObject.get("values").toString();
                     EventBus.getDefault().post(new PublishEvent(operation, serviceResponse.service, content));
-                } catch (ParseException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 

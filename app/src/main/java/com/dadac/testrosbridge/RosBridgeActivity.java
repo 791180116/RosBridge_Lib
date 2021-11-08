@@ -12,23 +12,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.example.dadac.testrosbridge.R;
 import com.jilk.ros.ROSClient;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
 import com.jilk.ros.rosbridge.implementation.PublishEvent;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import de.greenrobot.event.EventBus;
 
 
 /**
@@ -39,7 +34,8 @@ import de.greenrobot.event.EventBus;
 public class RosBridgeActivity extends Activity implements View.OnClickListener {
 
     ROSBridgeClient client;
-    String ip = "192.168.2.119";   //虚拟机的 IP
+    //String ip = "172.16.3.194";   //虚拟机的 IP
+    String ip = "172.16.3.27";   //虚拟机的 IP
     // String ip = "192.168.10.20";     //半残废机器人的IP
     // String ip = "192.168.10.200";     //机器人的IP
     String port = "9090";
@@ -108,10 +104,11 @@ public class RosBridgeActivity extends Activity implements View.OnClickListener 
     //接收来自Ros端的数据
     private void ReceiveDataToRos() {
         if (isSubscrible == true) {
-            String msg1 = "{\"op\":\"subscribe\",\"topic\":\"/chatter\"}";
+
+            String msg1 = "{\"op\":\"subscribe\",\"topic\":\"/slamap_status\"}";
             client.send(msg1);
         } else if (isSubscrible == false) {
-            String msg2 = "{\"op\":\"unsubscribe\",\"topic\":\"/chatter\"}";
+            String msg2 = "{\"op\":\"unsubscribe\",\"topic\":\"/slamap_status\"}";
             client.send(msg2);
         }
     }
@@ -144,12 +141,11 @@ public class RosBridgeActivity extends Activity implements View.OnClickListener 
 
     private void parseChatterTopic(PublishEvent event) {
         try {
-            JSONParser parser = new JSONParser();
-            org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) parser.parse(event.msg);
+            JSONObject jsonObject =  JSON.parseObject(event.msg);
             String jsondata = (String) jsonObject.get("data");
             DC_TextView_ShowData.setText(jsondata);
             Log.i("dachen", jsondata);
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -187,20 +183,25 @@ public class RosBridgeActivity extends Activity implements View.OnClickListener 
             return true;
         }
     }
+
     private boolean Btn_LongPress = false;
+
     class MyThread extends Thread {
         @Override
         public void run() {
             while (Btn_LongPress) {
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                SendDataToRos("Start");
+                //SendDataToRos("Start");
+                //SendDataToRos("/sdcard/saveTemp.jpg");
+                SendDataToRos(DC_EditText_EnterWord.getText().toString());
             }
         }
     }
+
     private void onTouchChange(String methodName, int eventAction) {
         MyThread myThread = new MyThread();
         // 按下松开分别对应启动停止线程方法
