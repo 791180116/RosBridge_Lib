@@ -19,6 +19,8 @@
  */
 package com.jilk.ros.rosbridge;
 
+import android.util.Log;
+
 import com.jilk.ros.ROSClient;
 import com.jilk.ros.Service;
 import com.jilk.ros.message.Message;
@@ -78,6 +80,7 @@ public class ROSBridgeClient extends ROSClient {
 
     @Override
     public void send(String json) {
+        Log.d("rosBridge","ROS> " + json);
         client.send(json);
     }
 
@@ -256,5 +259,5 @@ public class ROSBridgeClient extends ROSClient {
     public Object getUnderlyingClient() {
         return client;
     }    
-    
+
 }

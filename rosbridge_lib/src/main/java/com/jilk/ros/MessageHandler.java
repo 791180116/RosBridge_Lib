@@ -19,8 +19,10 @@
  */
 package com.jilk.ros;
 
+import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.Message;
 
 public interface MessageHandler<T extends Message> {
     public void onMessage(T message);
+    public void onErrorMessage(ErrorMsg errorMsg);
 }

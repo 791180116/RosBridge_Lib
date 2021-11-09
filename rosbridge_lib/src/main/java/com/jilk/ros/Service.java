@@ -1,24 +1,26 @@
 /**
  * Copyright (c) 2014 Jilk Systems, Inc.
- * 
+ * <p>
  * This file is part of the Java ROSBridge Client.
- *
+ * <p>
  * The Java ROSBridge Client is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * The Java ROSBridge Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with the Java ROSBridge Client.  If not, see http://www.gnu.org/licenses/.
- * 
  */
 package com.jilk.ros;
 
+import android.util.Log;
+
+import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.FullMessageHandler;
 import com.jilk.ros.rosbridge.operation.CallService;
@@ -34,7 +36,7 @@ public class Service<CallType extends Message, ResponseType extends Message> ext
     private Class<? extends CallType> callType;
     private ROSClient client;
     private Map<String, CallRecord> calls;
-    
+
     public Service(String service, Class<? extends CallType> callType,
                    Class<? extends ResponseType> responseType, ROSClient client) {
         this.service = service;
@@ -44,42 +46,47 @@ public class Service<CallType extends Message, ResponseType extends Message> ext
         calls = new HashMap<String, CallRecord>();
     }
 
-    // A result can only be returned once; it is cleared from the hash before 
-    //   being sent/returned. This is to ensure that results do not accumulate
-    //   indefinitely.  If callers need to keep these around they can set up their 
-    //   own hash.
-    
+    /**
+     * A result can only be returned once; it is cleared from the hash before being sent/returned.
+     * This is to ensure that results do not accumulate indefinitely.
+     * If callers need to keep these around they can set up their own hash.
+     * 一个结果只能返回一次；它在被发送返回之前从散列中清除。这是为了确保结果不会无限期地累积。如果调用者需要保留这些，他们可以设置自己的哈希。
+     */
     @Override
     public void onMessage(String id, Message response) {
         //System.out.print("Service.onMessage: ");
         //response.print();
         CallRecord call = calls.get(id);
-        if(call == null) {
-            System.out.print("No caller service response");
+        if (call == null) {
+            //System.out.print("No caller service response");
+            Log.d("rosBridge", "No caller service response");
             return;
         }
         if (call.handler != null) {
             calls.remove(id);
-            call.handler.onMessage((ResponseType) response);
-        }
-        else {
+            if (response instanceof ErrorMsg) {
+                call.handler.onErrorMessage((ErrorMsg) response);
+            } else {
+                call.handler.onMessage((ResponseType) response);
+            }
+        } else {
             call.result = (ResponseType) response;
             call.latch.countDown();
         }
     }
-    
+
     public String call(CallType args) {
         return callImpl(args, null);
     }
-    
+
     public void callWithHandler(CallType args, MessageHandler<ResponseType> responseHandler) {
         callImpl(args, responseHandler);
     }
-    
+
     public ResponseType callBlocking(CallType args) throws InterruptedException {
         return take(call(args));
     }
-    
+
     private String callImpl(CallType args, MessageHandler<ResponseType> responseHandler) {
         client.register(ServiceResponse.class, service, responseType, this);  // do this once on creation?
         CallService messageCallService = new CallService(service, args);
@@ -89,21 +96,21 @@ public class Service<CallType extends Message, ResponseType extends Message> ext
         client.send(messageCallService);
         return id;
     }
-    
+
     public ResponseType poll(String id) {
         CallRecord call = calls.get(id);
         if (call.result != null)
             calls.remove(id);
         return call.result;
     }
-    
+
     public ResponseType take(String id) throws InterruptedException {
         CallRecord call = calls.get(id);
         call.latch.await();
         calls.remove(id);
         return call.result;
     }
-    
+
     public void verify() throws InterruptedException {
 
         boolean hasService = false;
@@ -115,16 +122,16 @@ public class Service<CallType extends Message, ResponseType extends Message> ext
         }
         if (!hasService)
             throw new RuntimeException("Service \'" + service + "\' not available.");
-        
+
         client.typeMatch(client.getServiceRequestDetails(service), callType);
         client.typeMatch(client.getServiceResponseDetails(service), responseType);
     }
-    
+
     private class CallRecord {
         public ResponseType result;
         public CountDownLatch latch;
         public MessageHandler<ResponseType> handler;
-        
+
         public CallRecord(MessageHandler<ResponseType> handler) {
             this.result = null;
             this.latch = new CountDownLatch(1);

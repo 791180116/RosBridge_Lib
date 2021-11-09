@@ -3,6 +3,7 @@ package com.dadac.testrosbridge;
 import android.app.Application;
 
 import com.jilk.ros.rosbridge.ROSBridgeClient;
+import com.lc.rosbridge_lib.RosCUtil;
 
 /**
  * @ Create by dadac on 2018/10/8.
@@ -17,6 +18,9 @@ public class RCApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        RosCUtil.getInstance()
+                .useEventBus()
+                .init(this, "172.16.3.194", 9090);
     }
 
     @Override

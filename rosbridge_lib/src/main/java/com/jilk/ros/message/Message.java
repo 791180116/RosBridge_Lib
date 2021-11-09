@@ -19,6 +19,8 @@
  */
 package com.jilk.ros.message;
 
+import android.util.Log;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -52,7 +54,8 @@ public abstract class Message {
         }
         catch (MessageException ex) {
             // should be changed to be a hooked method to give library user control
-            System.out.println(ex.getMessage());
+            //System.out.println(ex.getMessage());
+            Log.d("rosBridge", ex.getMessage());
         }
     }
     
@@ -114,14 +117,18 @@ public abstract class Message {
             Object fieldObject = getFieldObject(f, o);
             if (fieldObject != null) {
                 if (isPrimitive(c))
-                    System.out.println(indent + f.getName() + ": " + fieldObject);
+                    //System.out.println(indent + f.getName() + ": " + fieldObject);
+                    Log.d("rosBridge",indent + f.getName() + ": " + fieldObject);
                 else if (c.isArray()) {
-                    System.out.println(indent + f.getName() + ": [");
+                    //System.out.println(indent + f.getName() + ": [");
+                    Log.d("rosBridge",indent + f.getName() + ": [");
                     printArray(fieldObject, indent + "  ");
-                    System.out.println(indent + "]");
+                    //System.out.println(indent + "]");
+                    Log.d("rosBridge",indent + "]");
                 }
                 else {
-                    System.out.println(indent + f.getName() + ":");
+                    //System.out.println(indent + f.getName() + ":");
+                    Log.d("rosBridge",indent + f.getName() + ":");
                     printMessage(fieldObject, indent + "  ");
                 }
             }
@@ -134,14 +141,18 @@ public abstract class Message {
             Object elementObject = Array.get(array, i);
             if (elementObject != null) {
                 if (isPrimitive(arrayClass))
-                    System.out.println(indent + i + ": " + elementObject);
+                    //System.out.println(indent + i + ": " + elementObject);
+                    Log.d("rosBridge",indent + i + ": " + elementObject);
                 else if (arrayClass.isArray()) { // this is not actually allowed in ROS
-                    System.out.println(indent + i + ": [");
+                    //System.out.println(indent + i + ": [");
+                    Log.d("rosBridge",indent + i + ": [");
                     printArray(elementObject, indent + "  ");
-                    System.out.println(indent + "]");
+                    //System.out.println(indent + "]");
+                    Log.d("rosBridge",indent + "]");
                 }
                 else {
-                    System.out.println(indent + i + ":");
+                    //System.out.println(indent + i + ":");
+                    Log.d("rosBridge",indent + i + ":");
                     printMessage(elementObject, indent + "  ");
                 }
             }

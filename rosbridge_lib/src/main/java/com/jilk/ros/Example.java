@@ -87,7 +87,8 @@ public class Example {
             */
         }
         catch (InterruptedException ex) {
-            System.out.println("Process was interrupted.");
+            //System.out.println("Process was interrupted.");
+            android.util.Log.d("rosBridge","Process was interrupted.");
         }
         /*
         Service<Empty, Topics> topicService =

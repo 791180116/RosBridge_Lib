@@ -1,4 +1,4 @@
-package com.jilk.ros.rosbridge.implementation;
+package com.lc.rosbridge_lib;
 
 import com.jilk.ros.rosbridge.operation.Operation;
 

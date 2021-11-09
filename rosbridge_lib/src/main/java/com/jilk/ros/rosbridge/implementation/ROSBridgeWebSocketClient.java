@@ -18,14 +18,19 @@
  */
 package com.jilk.ros.rosbridge.implementation;
 
+import android.util.Log;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.jilk.ros.ROSClient;
+import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.FullMessageHandler;
 import com.jilk.ros.rosbridge.operation.Operation;
 import com.jilk.ros.rosbridge.operation.Publish;
 import com.jilk.ros.rosbridge.operation.ServiceResponse;
+import com.lc.rosbridge_lib.PublishEvent;
+import com.lc.rosbridge_lib.RosErrorEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.java_websocket.client.WebSocketClient;
@@ -76,55 +81,67 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        if (debug) System.out.println("<ROS " + message);
-        //System.out.println("ROSBridgeWebSocketClient.onMessage (message): " + message);
+        //if (debug) System.out.println("<ROS " + message);
+        if (debug) Log.d("rosBridge", "<ROS " + message);
         Operation operation = Operation.toOperation(message, classes);
-        //System.out.println("ROSBridgeWebSocketClient.onMessage (operation): ");
-        //operation.print();
-
-        FullMessageHandler handler = null;
-        Message msg = null;
-        if (operation instanceof Publish) {
-            Publish p = (Publish) operation;
-            handler = handlers.lookup(Publish.class, p.topic);
-            msg = p.msg;
-        } else if (operation instanceof ServiceResponse) {
-            ServiceResponse r = ((ServiceResponse) operation);
-            handler = handlers.lookup(ServiceResponse.class, r.service);
-            msg = r.values;
-        }
-        // later we will add clauses for Fragment, PNG, and Status. When rosbridge has it, we'll have one for service requests.
-
-        // need to handle "result: null" possibility for ROSBridge service responses
-        // this is probably some sort of call to the operation for "validation." Do it
-        // as part of error handling.
-
-        if (handler != null && message.contains("\"id\":"))
-            handler.onMessage(operation.id, msg);
-        else {
-            if (debug)
-                System.out.print("No handler: id# " + operation.id + ", op:" + operation.op);
+        if (operation == null) {
+            RosErrorEvent rosErrorEvent = JSON.parseObject(message, RosErrorEvent.class);
+            if ("service_response".equals(rosErrorEvent.getOp())) {
+                handlers.lookup(ServiceResponse.class, rosErrorEvent.getService()).onMessage(rosErrorEvent.getId(), new ErrorMsg(rosErrorEvent.getValues()));
+                unregister(ServiceResponse.class, rosErrorEvent.getService());
+            } else if ("publish".equals(rosErrorEvent.getOp())) {
+                unregister(Publish.class, rosErrorEvent.getService());
+            }
+            EventBus.getDefault().post(rosErrorEvent);
+            //return;
+        } else {
+            FullMessageHandler handler = null;
+            Message msg = null;
             if (operation instanceof Publish) {
-                Publish publish = ((Publish) operation);
-                try {
-                    JSONObject jsonObject = JSON.parseObject(message);
-                    String content = jsonObject.get("msg").toString();
-                    EventBus.getDefault().post(new PublishEvent(operation, publish.topic, content));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                System.out.println("Publish " + publish.topic);
+                Publish p = (Publish) operation;
+                handler = handlers.lookup(Publish.class, p.topic);
+                msg = p.msg;
             } else if (operation instanceof ServiceResponse) {
-                ServiceResponse serviceResponse = ((ServiceResponse) operation);
-                try {
-                    JSONObject jsonObject = JSON.parseObject(message);
-                    String content = jsonObject.get("values").toString();
-                    EventBus.getDefault().post(new PublishEvent(operation, serviceResponse.service, content));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                ServiceResponse r = ((ServiceResponse) operation);
+                handler = handlers.lookup(ServiceResponse.class, r.service);
+                msg = r.values;
+            }
+            // later we will add clauses for Fragment, PNG, and Status. When rosbridge has it, we'll have one for service requests.
 
-                System.out.println("Service Response " + serviceResponse.service);
+            // need to handle "result: null" possibility for ROSBridge service responses
+            // this is probably some sort of call to the operation for "validation." Do it
+            // as part of error handling.
+
+            if (handler != null && message.contains("\"id\":")) {
+                handler.onMessage(operation.id, msg);
+            } else {
+                if (debug) {
+                    Log.d("rosBridge", "No handler: id# " + operation.id + ", op:" + operation.op);
+                    //System.out.print("No handler: id# " + operation.id + ", op:" + operation.op);
+                }
+                if (operation instanceof Publish) {
+                    Publish publish = ((Publish) operation);
+                    try {
+                        JSONObject jsonObject = JSON.parseObject(message);
+                        String content = jsonObject.get("msg").toString();
+                        EventBus.getDefault().post(new PublishEvent(operation, publish.topic, content));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    //System.out.println("Publish " + publish.topic);
+                    Log.d("rosBridge", "Publish " + publish.topic);
+                } else if (operation instanceof ServiceResponse) {
+                    ServiceResponse serviceResponse = ((ServiceResponse) operation);
+                    try {
+                        JSONObject jsonObject = JSON.parseObject(message);
+                        String content = jsonObject.get("values").toString();
+                        EventBus.getDefault().post(new PublishEvent(operation, serviceResponse.service, content));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    //System.out.println("Service Response " + serviceResponse.service);
+                    Log.d("rosBridge", "Service Response " + serviceResponse.service);
+                }
             }
         }
     }
@@ -161,14 +178,16 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
                     socket.close();
             }
         } catch (Exception ex) {
-            System.out.println("Exception in Websocket close hack.");
+            //System.out.println("Exception in Websocket close hack.");
+            if (debug) Log.d("rosBridge", "Exception in Websocket close hack.");
             ex.printStackTrace();
         }
     }
 
     public void send(Operation operation) {
         String json = operation.toJSON();
-        if (debug) System.out.println("ROS> " + json);
+        //if (debug) System.out.println("ROS> " + json);
+        if (debug) Log.d("rosBridge", "ROS> " + json);
         send(json);
     }
 

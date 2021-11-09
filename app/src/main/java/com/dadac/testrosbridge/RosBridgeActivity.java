@@ -15,10 +15,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.example.dadac.testrosbridge.R;
 import com.jilk.ros.ROSClient;
+import com.jilk.ros.message.StdMsg;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
-import com.jilk.ros.rosbridge.implementation.PublishEvent;
+import com.lc.rosbridge_lib.PublishEvent;
+import com.jilk.ros.rosbridge.operation.Publish;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 
 /**
@@ -29,8 +32,8 @@ import org.greenrobot.eventbus.EventBus;
 public class RosBridgeActivity extends Activity implements View.OnClickListener {
 
     ROSBridgeClient client;
-    //String ip = "172.16.3.194";   //虚拟机的 IP
-    String ip = "172.16.3.27";   //虚拟机的 IP
+    String ip = "172.16.3.194";   //虚拟机的 IP
+    //String ip = "172.16.3.27";   //虚拟机的 IP
     // String ip = "192.168.10.20";     //半残废机器人的IP
     // String ip = "192.168.10.200";     //机器人的IP
     String port = "9090";
@@ -110,10 +113,13 @@ public class RosBridgeActivity extends Activity implements View.OnClickListener 
 
     //发送数据到ROS端
     private void SendDataToRos(String data) {
-        String msg1 = "{ \"op\": \"publish\", \"topic\": \"/chatter\", \"msg\": { \"data\": \"" + data + " \" }}";
+        /*String msg1 = "{ \"op\": \"publish\", \"topic\": \"/chatter\", \"msg\": { \"data\": \"" + data + " \" }}";
         //        String msg2 = "{\"op\":\"publish\",\"topic\":\"/cmd_vel\",\"msg\":{\"linear\":{\"x\":" + 0 + ",\"y\":" +
         //                0 + ",\"z\":0},\"angular\":{\"x\":0,\"y\":0,\"z\":" + 0.5 + "}}}";
-        client.send(msg1);
+        client.send(msg1);*/
+        StdMsg stdMsg = new StdMsg();
+        stdMsg.data = data;
+        client.send(new Publish("/chatter",stdMsg));
     }
 
 
@@ -126,6 +132,7 @@ public class RosBridgeActivity extends Activity implements View.OnClickListener 
         });
     }
 
+    @Subscribe
     public void onEvent(final PublishEvent event) {
         if ("/chatter".equals(event.name)) {
             parseChatterTopic(event);
