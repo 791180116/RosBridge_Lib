@@ -50,6 +50,9 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     //implementation files('libs/json-simple-1.1.jar')
 
+
+    implementation 'com.alibaba:fastjson:1.2.78'
+    implementation 'org.greenrobot:eventbus:3.0.0'
     implementation project(path: ':rosbridge_lib')
     //implementation 'com.github.791180116:RosBridge_Lib:0.1'
 }

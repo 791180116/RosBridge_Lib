@@ -8,9 +8,14 @@ import android.util.Log;
 import com.jilk.ros.MessageHandler;
 import com.jilk.ros.ROSClient;
 import com.jilk.ros.Service;
+import com.jilk.ros.Topic;
 import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
+import com.jilk.ros.rosbridge.operation.Advertise;
+import com.jilk.ros.rosbridge.operation.Operation;
+import com.jilk.ros.rosbridge.operation.Publish;
+import com.jilk.ros.rosbridge.operation.Unadvertise;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -109,7 +114,7 @@ public class RosCUtil {
     /**
      * @return ROSBridgeClient 实体
      */
-    public ROSBridgeClient getClient() {
+    private ROSBridgeClient getClient() {
         if (null == client) {
             throw new NullPointerException("client == null,请在Application中初始化");
         }
@@ -124,28 +129,107 @@ public class RosCUtil {
         }
     }
 
-    public static void sent() {
-        /*client.send();
-        return new GetRequest<>(url);*/
+    private void send(Operation operation) {
+        getClient().send(operation);
     }
 
-    public <CallType extends Message, ResponseType extends Message> void callWithHandler
-            (String uri, Class<? extends ResponseType> responseType, CallType args, RosServiceCallback<ResponseType> callback) {
-        Service<CallType, ResponseType> service = new Service(uri, args.getClass(), responseType, getClient());
-        AsyncTask.execute(() -> {
-            service.callWithHandler(args, new MessageHandler<ResponseType>() {
-                @Override
-                public void onMessage(ResponseType message) {
-                    callback.success(message);
-                }
+    /**
+     * 发布消息
+     *
+     * @param topic   消息地址
+     * @param message 消息实体
+     */
+    public <T extends Message> void publish(String topic, T message) {
+        Topic<T> pubTopic = new Topic(topic, message.getClass(), getClient());
+        pubTopic.publish(message);
+    }
 
-                @Override
-                public void onErrorMessage(ErrorMsg errorMsg) {
-                    callback.error(errorMsg);
-                }
-            });
+    /**
+     * 创建广播
+     *
+     * @param topic 广播地址
+     * @param type  广播数据类型
+     */
+    public <T extends Message> void advertise(String topic, Class<? extends T> type) {
+        Topic<T> advTopic = new Topic<>(topic, type, getClient());
+        advTopic.advertise();
+    }
+
+    /**
+     * 取消广播
+     *
+     * @param topic 广播地址
+     * @param type  广播数据类型
+     */
+    public <T extends Message> void unAdvertise(String topic, Class<? extends T> type) {
+        Topic<T> unAdvTopic = new Topic<>(topic, type, getClient());
+        unAdvTopic.unadvertise();
+    }
+
+    /**
+     * 订阅消息
+     *
+     * @param topic    topic地址
+     * @param type     返回数据类型
+     * @param callback 收到消息回调
+     * @param <T>      返回数据类型
+     */
+    public <T extends Message> void subscribe(String topic, Class<? extends T> type, RosSubscribeCallback<T> callback) {
+        Topic<T> subTopic = new Topic<>(topic, type, getClient());
+        subTopic.subscribe(new MessageHandler<T>() {
+            @Override
+            public void onMessage(T message) {
+                callback.success(message);
+            }
+
+            @Override
+            public void onErrorMessage(ErrorMsg errorMsg) {
+
+            }
+        });
+    }
+
+    /**
+     * 取消订阅消息
+     *
+     * @param topic topic地址
+     * @param type  返回数据类型
+     */
+    public <T extends Message> void unSubscribe(String topic, Class<? extends T> type) {
+        Topic<T> subTopic = new Topic<>(topic, type, getClient());
+        subTopic.unsubscribe();
+    }
+
+    /**
+     * 请求ros服务
+     *
+     * @param service      服务地址
+     * @param responseType 放回数据类型
+     * @param args         请求参数
+     * @param callback     请求回调
+     */
+    public <CallType extends Message, ResponseType extends Message> void callWithHandler
+    (String service, Class<? extends ResponseType> responseType, CallType args, RosServiceCallback<ResponseType> callback) {
+        Service<CallType, ResponseType> callService = new Service(service, args.getClass(), responseType, getClient());
+        callService.callWithHandler(args, new MessageHandler<ResponseType>() {
+            @Override
+            public void onMessage(ResponseType message) {
+                callback.success(message);
+            }
+
+            @Override
+            public void onErrorMessage(ErrorMsg errorMsg) {
+                callback.error(errorMsg);
+            }
         });
         //return service.callBlocking(args);
+    }
+
+    /**
+     * 断开连接
+     */
+    public void disconnect() {
+        getClient().disconnect();
     }
 
     @Subscribe

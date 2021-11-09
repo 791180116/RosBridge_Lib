@@ -19,7 +19,7 @@ public class RCApplication extends Application {
     public void onCreate() {
         super.onCreate();
         RosCUtil.getInstance()
-                .useEventBus()
+                //.useEventBus()
                 .init(this, "172.16.3.194", 9090);
     }
 

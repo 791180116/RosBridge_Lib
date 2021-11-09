@@ -19,6 +19,7 @@ import com.jilk.ros.rosbridge.operation.Unsubscribe;
 import com.lc.rosbridge_lib.RosCUtil;
 import com.lc.rosbridge_lib.RosErrorEvent;
 import com.lc.rosbridge_lib.RosServiceCallback;
+import com.lc.rosbridge_lib.RosSubscribeCallback;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -43,15 +44,26 @@ public class MainActivity extends AppCompatActivity {
     public void Publish(View view) {
         StdMsg stdMsg = new StdMsg();
         stdMsg.data = "hello publish";
-        RosCUtil.getInstance().getClient().send(new Publish("/chatter", stdMsg));
+        RosCUtil.getInstance().publish("/chatter", stdMsg);
     }
 
     public void Subscribe(View view) {
-        RosCUtil.getInstance().getClient().send(new Subscribe("/chatter", "订阅数据类型"));
+        //RosCUtil.getInstance().getClient().send(new Subscribe("/chatter", "订阅数据类型"));
+        RosCUtil.getInstance().subscribe("/chatter", StdMsg.class, new RosSubscribeCallback<StdMsg>() {
+            @Override
+            public void success(StdMsg response) {
+                Log.d("Subscribe", response.data);
+            }
+
+            @Override
+            public void error(ErrorMsg errorMsg) {
+
+            }
+        });
     }
 
     public void unSubscribe(View view) {
-        RosCUtil.getInstance().getClient().send(new Unsubscribe("/chatter"));
+        RosCUtil.getInstance().unSubscribe("/chatter", StdMsg.class);
     }
 
     public void service(View view) {
