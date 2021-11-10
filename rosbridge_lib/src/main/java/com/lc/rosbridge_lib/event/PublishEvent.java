@@ -1,9 +1,9 @@
-package com.lc.rosbridge_lib;
+package com.lc.rosbridge_lib.event;
 
 import com.jilk.ros.rosbridge.operation.Operation;
 
-/**EventBus event entity,describe ros server response info
- * Created by xxhong on 16-11-22.
+/**
+ * EventBus event entity,describe ros server response info
  */
 
 public class PublishEvent {
@@ -14,7 +14,7 @@ public class PublishEvent {
 
 
     public PublishEvent(Operation operation, String name, String content) {
-        if(operation != null) {
+        if (operation != null) {
             id = operation.id;
             op = operation.op;
         }

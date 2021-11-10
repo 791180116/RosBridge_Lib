@@ -29,8 +29,8 @@ import com.jilk.ros.rosbridge.FullMessageHandler;
 import com.jilk.ros.rosbridge.operation.Operation;
 import com.jilk.ros.rosbridge.operation.Publish;
 import com.jilk.ros.rosbridge.operation.ServiceResponse;
-import com.lc.rosbridge_lib.PublishEvent;
-import com.lc.rosbridge_lib.RosErrorEvent;
+import com.lc.rosbridge_lib.event.PublishEvent;
+import com.lc.rosbridge_lib.event.RosErrorEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.java_websocket.client.WebSocketClient;
@@ -83,17 +83,17 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
     public void onMessage(String message) {
         //if (debug) System.out.println("<ROS " + message);
         if (debug) Log.d("rosBridge", "<ROS " + message);
+        EventBus.getDefault().post(JSONObject.parseObject(message));
         Operation operation = Operation.toOperation(message, classes);
         if (operation == null) {
             RosErrorEvent rosErrorEvent = JSON.parseObject(message, RosErrorEvent.class);
-            if ("service_response".equals(rosErrorEvent.getOp())) {
-                handlers.lookup(ServiceResponse.class, rosErrorEvent.getService()).onMessage(rosErrorEvent.getId(), new ErrorMsg(rosErrorEvent.getValues()));
-                unregister(ServiceResponse.class, rosErrorEvent.getService());
-            } else if ("publish".equals(rosErrorEvent.getOp())) {
-                unregister(Publish.class, rosErrorEvent.getService());
+            if ("service_response".equals(rosErrorEvent.op)) {
+                handlers.lookup(ServiceResponse.class, rosErrorEvent.service).onMessage(rosErrorEvent.id, new ErrorMsg(rosErrorEvent.values));
+                unregister(ServiceResponse.class, rosErrorEvent.service);
+            } else if ("publish".equals(rosErrorEvent.op)) {
+                unregister(Publish.class, rosErrorEvent.service);
             }
             EventBus.getDefault().post(rosErrorEvent);
-            //return;
         } else {
             FullMessageHandler handler = null;
             Message msg = null;
@@ -119,6 +119,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
                     Log.d("rosBridge", "No handler: id# " + operation.id + ", op:" + operation.op);
                     //System.out.print("No handler: id# " + operation.id + ", op:" + operation.op);
                 }
+                //一般到不了这里，直接调用client的sent方法才能到这里不建议直接调用client.sent()方法
                 if (operation instanceof Publish) {
                     Publish publish = ((Publish) operation);
                     try {

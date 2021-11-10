@@ -5,14 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity">
-
-    <Button
-        android:id="@+id/DC_Button_JumpToRos"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="跳转到ROS发送接收数据的界面"
-        android:onClick="JumpToActivity"/>
+    tools:context="com.example.testrosbridge.MainActivity">
 
     <Button
         android:layout_width="wrap_content"

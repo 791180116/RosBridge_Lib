@@ -1,7 +1,6 @@
 package com.lc.rosbridge_lib;
 
 import android.app.Application;
-import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -12,10 +11,13 @@ import com.jilk.ros.Topic;
 import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
-import com.jilk.ros.rosbridge.operation.Advertise;
 import com.jilk.ros.rosbridge.operation.Operation;
-import com.jilk.ros.rosbridge.operation.Publish;
-import com.jilk.ros.rosbridge.operation.Unadvertise;
+import com.lc.rosbridge_lib.callback.RosServiceCallback;
+import com.lc.rosbridge_lib.callback.RosSubscribeCallback;
+import com.lc.rosbridge_lib.event.EventDistribution;
+import com.lc.rosbridge_lib.event.JsonObjectEvent;
+import com.lc.rosbridge_lib.event.PublishEvent;
+import com.lc.rosbridge_lib.event.RosErrorEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -30,17 +32,20 @@ public class RosCUtil {
     private String mIp = "192.168.9.100";
     private int mPort = 9090;
     private boolean isConnected;
+    private EventBus eventBus;
+    private EventDistribution eventDistribution;
 
     public static RosCUtil getInstance() {
-        return OkGoHolder.holder;
+        return RosCHolder.holder;
     }
 
-    private static class OkGoHolder {
+    private static class RosCHolder {
         private static final RosCUtil holder = new RosCUtil();
     }
 
-    public RosCUtil useEventBus() {
-        EventBus eventBus = EventBus.getDefault();
+    public RosCUtil useEventBus(EventDistribution eventDistribution) {
+        this.eventDistribution = eventDistribution;
+        eventBus = EventBus.getDefault();
         eventBus.register(this);
         return this;
     }
@@ -229,11 +234,27 @@ public class RosCUtil {
      * 断开连接
      */
     public void disconnect() {
+        if (null != eventBus) {
+            eventBus.unregister(this);
+        }
         getClient().disconnect();
     }
 
     @Subscribe
+    public void onEvent(final PublishEvent event) {
+        Log.d(Tag, event.toString());
+        if (eventDistribution != null) eventDistribution.onPublishEvent(event);
+    }
+
+    @Subscribe
     public void onEvent(final RosErrorEvent event) {
-        Log.e(Tag, event.toString());
+        Log.d(Tag, event.toString());
+        if (eventDistribution != null) eventDistribution.onErrorEvent(event);
+    }
+
+    @Subscribe
+    public void onEvent(final JsonObjectEvent event) {
+        Log.d(Tag, event.toString());
+        if (eventDistribution != null) eventDistribution.onJsonObjectEvent(event);
     }
 }

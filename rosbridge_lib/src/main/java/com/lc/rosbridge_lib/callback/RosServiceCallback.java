@@ -1,4 +1,4 @@
-package com.lc.rosbridge_lib;
+package com.lc.rosbridge_lib.callback;
 
 import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.Message;
@@ -8,7 +8,7 @@ import com.jilk.ros.message.Message;
  *
  * @param <ResponseType>
  */
-public interface RosSubscribeCallback<ResponseType extends Message> {
+public interface RosServiceCallback<ResponseType extends Message> {
     void success(ResponseType response);
     void error(ErrorMsg errorMsg);
 }

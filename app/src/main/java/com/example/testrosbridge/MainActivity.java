@@ -1,44 +1,25 @@
-package com.example.dadac.testrosbridge;
+package com.example.testrosbridge;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
-import com.dadac.testrosbridge.RosBridgeActivity;
 import com.jilk.ros.message.Empty;
 import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.StdMsg;
 import com.jilk.ros.rosapi.message.GetTime;
-import com.jilk.ros.rosbridge.operation.Publish;
-import com.jilk.ros.rosbridge.operation.Subscribe;
-import com.jilk.ros.rosbridge.operation.Unsubscribe;
 import com.lc.rosbridge_lib.RosCUtil;
-import com.lc.rosbridge_lib.RosErrorEvent;
-import com.lc.rosbridge_lib.RosServiceCallback;
-import com.lc.rosbridge_lib.RosSubscribeCallback;
-
-import org.greenrobot.eventbus.EventBus;
+import com.lc.rosbridge_lib.event.RosErrorEvent;
+import com.lc.rosbridge_lib.callback.RosServiceCallback;
+import com.lc.rosbridge_lib.callback.RosSubscribeCallback;
 
 public class MainActivity extends AppCompatActivity {
-
-    private Button DC_Button_JumpToRos;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        DC_Button_JumpToRos = (Button) findViewById(R.id.DC_Button_JumpToRos);
         //EventBus.getDefault().register(this);
-    }
-
-
-    public void JumpToActivity(View view) {
-        Intent myIntentRos = new Intent(MainActivity.this, RosBridgeActivity.class);
-        startActivity(myIntentRos);
     }
 
     public void Publish(View view) {
