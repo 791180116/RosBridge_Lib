@@ -14,7 +14,7 @@ import com.jilk.ros.rosbridge.ROSBridgeClient;
 import com.jilk.ros.rosbridge.operation.Operation;
 import com.lc.rosbridge_lib.callback.RosServiceCallback;
 import com.lc.rosbridge_lib.callback.RosSubscribeCallback;
-import com.lc.rosbridge_lib.event.EventDistribution;
+import com.lc.rosbridge_lib.EventDistribution;
 import com.lc.rosbridge_lib.event.JsonObjectEvent;
 import com.lc.rosbridge_lib.event.PublishEvent;
 import com.lc.rosbridge_lib.event.RosErrorEvent;

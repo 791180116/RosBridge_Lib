@@ -45,5 +45,5 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.2.78'
     implementation 'org.greenrobot:eventbus:3.0.0'
     implementation project(path: ':rosbridge_lib')
-    //implementation 'com.github.791180116:RosBridge_Lib:0.1'
+    //implementation 'com.github.791180116:RosBridge_Lib:0.2'
 }
