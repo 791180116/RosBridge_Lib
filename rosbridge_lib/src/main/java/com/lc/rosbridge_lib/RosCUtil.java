@@ -12,6 +12,8 @@ import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
 import com.jilk.ros.rosbridge.operation.Operation;
+import com.jilk.ros.rosbridge.operation.Publish;
+import com.jilk.ros.rosbridge.operation.Unsubscribe;
 import com.lc.rosbridge_lib.callback.RosServiceCallback;
 import com.lc.rosbridge_lib.callback.RosSubscribeCallback;
 import com.lc.rosbridge_lib.EventDistribution;
@@ -33,6 +35,7 @@ public class RosCUtil {
     private int mPort = 9090;
     private boolean isConnected;
     private EventBus eventBus;
+    private boolean useEventBus;
     private EventDistribution eventDistribution;
 
     public static RosCUtil getInstance() {
@@ -44,6 +47,7 @@ public class RosCUtil {
     }
 
     public RosCUtil useEventBus(EventDistribution eventDistribution) {
+        this.useEventBus = true;
         this.eventDistribution = eventDistribution;
         eventBus = EventBus.getDefault();
         eventBus.register(this);
@@ -88,6 +92,7 @@ public class RosCUtil {
             @Override
             public void onConnect() {
                 client.setDebug(BuildConfig.DEBUG);
+                client.setUseEventBus(useEventBus);
                 isConnected = true;
                 //((RCApplication) getApplication()).setRosClient(client);
                 //showTip("Connect ROS success");

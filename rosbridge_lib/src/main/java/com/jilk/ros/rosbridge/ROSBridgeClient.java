@@ -258,6 +258,9 @@ public class ROSBridgeClient extends ROSClient {
     @Override
     public Object getUnderlyingClient() {
         return client;
-    }    
+    }
 
+    public void setUseEventBus(boolean useEventBus) {
+        client.setUseEventBus(useEventBus);
+    }
 }

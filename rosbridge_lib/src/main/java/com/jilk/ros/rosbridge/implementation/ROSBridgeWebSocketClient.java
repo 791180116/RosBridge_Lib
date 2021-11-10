@@ -48,6 +48,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
     private Registry<Class> classes;
     private Registry<FullMessageHandler> handlers;
     private boolean debug;
+    private boolean useEventBus;
     private ROSClient.ConnectionStatusListener listener;
 
     ROSBridgeWebSocketClient(URI serverURI) {
@@ -83,7 +84,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
     public void onMessage(String message) {
         //if (debug) System.out.println("<ROS " + message);
         if (debug) Log.d("rosBridge", "<ROS " + message);
-        EventBus.getDefault().post(JSONObject.parseObject(message));
+        if (useEventBus) EventBus.getDefault().post(JSONObject.parseObject(message));
         Operation operation = Operation.toOperation(message, classes);
         if (operation == null) {
             RosErrorEvent rosErrorEvent = JSON.parseObject(message, RosErrorEvent.class);
@@ -93,7 +94,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
             } else if ("publish".equals(rosErrorEvent.op)) {
                 unregister(Publish.class, rosErrorEvent.service);
             }
-            EventBus.getDefault().post(rosErrorEvent);
+            if (useEventBus) EventBus.getDefault().post(rosErrorEvent);
         } else {
             FullMessageHandler handler = null;
             Message msg = null;
@@ -125,7 +126,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
                     try {
                         JSONObject jsonObject = JSON.parseObject(message);
                         String content = jsonObject.get("msg").toString();
-                        EventBus.getDefault().post(new PublishEvent(operation, publish.topic, content));
+                        if (useEventBus) EventBus.getDefault().post(new PublishEvent(operation, publish.topic, content));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -136,7 +137,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
                     try {
                         JSONObject jsonObject = JSON.parseObject(message);
                         String content = jsonObject.get("values").toString();
-                        EventBus.getDefault().post(new PublishEvent(operation, serviceResponse.service, content));
+                        if (useEventBus) EventBus.getDefault().post(new PublishEvent(operation, serviceResponse.service, content));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -213,5 +214,9 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    public void setUseEventBus(boolean useEventBus) {
+        this.useEventBus = useEventBus;
     }
 }
