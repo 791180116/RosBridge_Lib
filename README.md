@@ -14,7 +14,7 @@
 #Step 2. 添加依赖
 
     dependencies {
-        implementation 'com.github.791180116:RosBridge_Lib:0.3'
+        implementation 'com.github.791180116:RosBridge_Lib:0.4'
     }
     
 ## 2.使用说明

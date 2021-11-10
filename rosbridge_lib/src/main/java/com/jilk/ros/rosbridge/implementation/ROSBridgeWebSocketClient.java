@@ -112,7 +112,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
             // this is probably some sort of call to the operation for "validation." Do it
             // as part of error handling.
 
-            if (handler != null && message.contains("\"id\":")) {
+            if (handler != null && !operation.id.isEmpty()) {
                 handler.onMessage(operation.id, msg);
             } else {
                 if (debug) {
