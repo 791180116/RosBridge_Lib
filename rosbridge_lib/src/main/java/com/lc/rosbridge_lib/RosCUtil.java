@@ -37,6 +37,7 @@ public class RosCUtil {
     private EventBus eventBus;
     private boolean useEventBus;
     private EventDistribution eventDistribution;
+    private RCConnectionListener rcConnectionListener;
 
     public static RosCUtil getInstance() {
         return RosCHolder.holder;
@@ -51,6 +52,11 @@ public class RosCUtil {
         this.eventDistribution = eventDistribution;
         eventBus = EventBus.getDefault();
         eventBus.register(this);
+        return this;
+    }
+
+    public RosCUtil setRCConnectionListener(RCConnectionListener rcConnectionListener) {
+        this.rcConnectionListener = rcConnectionListener;
         return this;
     }
 
@@ -87,31 +93,47 @@ public class RosCUtil {
      * @Function: 建立连接
      * @Return:
      */
-    private boolean onConnect() {
-        return client.connect(new ROSClient.ConnectionStatusListener() {
-            @Override
-            public void onConnect() {
-                client.setDebug(BuildConfig.DEBUG);
-                client.setUseEventBus(useEventBus);
-                isConnected = true;
-                //((RCApplication) getApplication()).setRosClient(client);
-                //showTip("Connect ROS success");
-                Log.d("rosBridge", "Connect ROS success");
-            }
+    public boolean onConnect() {
+        if (client != null) {
+            if (!isConnected) {
+                return client.connect(new ROSClient.ConnectionStatusListener() {
+                    @Override
+                    public void onConnect() {
+                        client.setDebug(BuildConfig.DEBUG);
+                        client.setUseEventBus(useEventBus);
+                        isConnected = true;
+                        //((RCApplication) getApplication()).setRosClient(client);
+                        //showTip("Connect ROS success");
+                        Log.d("rosBridge", "Connect ROS success");
+                        if (null != rcConnectionListener) {
+                            rcConnectionListener.onConnect();
+                        }
+                    }
 
+                    @Override
+                    public void onDisconnect(boolean normal, String reason, int code) {
+                        Log.d("rosBridge", "ROS disconnect");
+                        isConnected = false;
+                        if (null != rcConnectionListener) {
+                            rcConnectionListener.onDisconnect(normal, reason, code);
+                        }
+                    }
 
-            @Override
-            public void onDisconnect(boolean normal, String reason, int code) {
-                Log.d("rosBridge", "ROS disconnect");
-                isConnected = false;
+                    @Override
+                    public void onError(Exception ex) {
+                        ex.printStackTrace();
+                        if (null != rcConnectionListener) {
+                            rcConnectionListener.onError(ex);
+                        }
+                        Log.d("rosBridge", "ROS communication error");
+                    }
+                });
+            } else {
+                return true;
             }
-
-            @Override
-            public void onError(Exception ex) {
-                ex.printStackTrace();
-                Log.d("rosBridge", "ROS communication error");
-            }
-        });
+        } else {
+            throw new NullPointerException("client == null,请在Application中初始化");
+        }
     }
 
     /**
@@ -261,5 +283,13 @@ public class RosCUtil {
     public void onEvent(final JsonObjectEvent event) {
         Log.d(Tag, event.toString());
         if (eventDistribution != null) eventDistribution.onJsonObjectEvent(event);
+    }
+
+    public interface RCConnectionListener {
+        public void onConnect();
+
+        public void onDisconnect(boolean normal, String reason, int code);
+
+        public void onError(Exception ex);
     }
 }
