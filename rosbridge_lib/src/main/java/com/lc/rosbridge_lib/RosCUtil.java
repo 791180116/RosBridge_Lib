@@ -12,14 +12,12 @@ import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
 import com.jilk.ros.rosbridge.operation.Operation;
-import com.jilk.ros.rosbridge.operation.Publish;
-import com.jilk.ros.rosbridge.operation.Unsubscribe;
 import com.lc.rosbridge_lib.callback.RosServiceCallback;
 import com.lc.rosbridge_lib.callback.RosSubscribeCallback;
-import com.lc.rosbridge_lib.EventDistribution;
 import com.lc.rosbridge_lib.event.JsonObjectEvent;
 import com.lc.rosbridge_lib.event.PublishEvent;
 import com.lc.rosbridge_lib.event.RosErrorEvent;
+import com.lc.rosbridge_lib.utils.RosThreadUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -211,12 +209,12 @@ public class RosCUtil {
         subTopic.subscribe(new MessageHandler<T>() {
             @Override
             public void onMessage(T message) {
-                callback.success(message);
+                RosThreadUtils.runOnUiThread(() -> callback.success(message));
             }
 
             @Override
             public void onErrorMessage(ErrorMsg errorMsg) {
-
+                RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
             }
         });
     }
@@ -246,12 +244,12 @@ public class RosCUtil {
         callService.callWithHandler(args, new MessageHandler<ResponseType>() {
             @Override
             public void onMessage(ResponseType message) {
-                callback.success(message);
+                RosThreadUtils.runOnUiThread(() -> callback.success(message));
             }
 
             @Override
             public void onErrorMessage(ErrorMsg errorMsg) {
-                callback.error(errorMsg);
+                RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
             }
         });
         //return service.callBlocking(args);
