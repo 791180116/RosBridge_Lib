@@ -3,6 +3,7 @@ package com.lc.rosbridge_lib;
 import android.app.Application;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.jilk.ros.MessageHandler;
 import com.jilk.ros.ROSClient;
@@ -11,7 +12,9 @@ import com.jilk.ros.Topic;
 import com.jilk.ros.message.ErrorMsg;
 import com.jilk.ros.message.Message;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
+import com.jilk.ros.rosbridge.implementation.Registry;
 import com.jilk.ros.rosbridge.operation.Operation;
+import com.jilk.ros.rosbridge.operation.Unsubscribe;
 import com.lc.rosbridge_lib.callback.RosServiceCallback;
 import com.lc.rosbridge_lib.callback.RosSubscribeCallback;
 import com.lc.rosbridge_lib.event.JsonObjectEvent;
@@ -164,11 +167,15 @@ public class RosCUtil {
     }
 
     /**
+     * 获取rosbridgeclient实体类，如果未连接会自动连接，但是要提前初始化
+     *
      * @return ROSBridgeClient 实体
      */
     private ROSBridgeClient getClient() {
         if (null == client) {
-            throw new NullPointerException("client == null,请在Application中初始化");
+            Toast.makeText(context, "client == null,请在Application中初始化", Toast.LENGTH_SHORT).show();
+            //throw new NullPointerException("client == null,请在Application中初始化");
+            return null;
         }
         if (isConnected()) {
             return client;
@@ -176,13 +183,17 @@ public class RosCUtil {
             if (onConnect()) {
                 return client;
             } else {
-                throw new RuntimeException("连接失败,请在检查ros服务是否开启");
+                Toast.makeText(context, "连接失败,请在检查ros服务是否开启", Toast.LENGTH_SHORT).show();
+                //throw new RuntimeException("连接失败,请在检查ros服务是否开启");
+                return null;
             }
         }
     }
 
     private void send(Operation operation) {
-        getClient().send(operation);
+        if (null != getClient()) {
+            getClient().send(operation);
+        }
     }
 
     /**
@@ -192,8 +203,10 @@ public class RosCUtil {
      * @param message 消息实体
      */
     public <T extends Message> void publish(String topic, T message) {
-        Topic<T> pubTopic = new Topic(topic, message.getClass(), getClient());
-        pubTopic.publish(message);
+        if (null != getClient()) {
+            Topic<T> pubTopic = new Topic(topic, message.getClass(), getClient());
+            pubTopic.publish(message);
+        }
     }
 
     /**
@@ -203,8 +216,10 @@ public class RosCUtil {
      * @param message      消息实体
      */
     public <T extends Message> void publish(RosNote note, T message) {
-        Topic<T> pubTopic = new Topic(note.topic, message.getClass(), getClient());
-        pubTopic.publish(message);
+        if (null != getClient()) {
+            Topic<T> pubTopic = new Topic(note.topic, message.getClass(), getClient());
+            pubTopic.publish(message);
+        }
     }
 
     /**
@@ -214,8 +229,10 @@ public class RosCUtil {
      * @param type  广播数据类型
      */
     public <T extends Message> void advertise(String topic, Class<? extends T> type) {
-        Topic<T> advTopic = new Topic<>(topic, type, getClient());
-        advTopic.advertise();
+        if (null != getClient()) {
+            Topic<T> advTopic = new Topic<>(topic, type, getClient());
+            advTopic.advertise();
+        }
     }
 
     /**
@@ -225,8 +242,10 @@ public class RosCUtil {
      * @param {note}.type  广播数据类型
      */
     public <T extends Message> void advertise(RosNote note) {
-        Topic<T> advTopic = new Topic(note.topic, note.type, getClient());
-        advTopic.advertise();
+        if (null != getClient()) {
+            Topic<T> advTopic = new Topic(note.topic, note.type, getClient());
+            advTopic.advertise();
+        }
     }
 
     /**
@@ -236,8 +255,10 @@ public class RosCUtil {
      * @param type  广播数据类型
      */
     public <T extends Message> void unAdvertise(String topic, Class<? extends T> type) {
-        Topic<T> unAdvTopic = new Topic<>(topic, type, getClient());
-        unAdvTopic.unadvertise();
+        if (null != getClient()) {
+            Topic<T> unAdvTopic = new Topic<>(topic, type, getClient());
+            unAdvTopic.unadvertise();
+        }
     }
 
     /**
@@ -247,8 +268,10 @@ public class RosCUtil {
      * @param {note}.type  广播数据类型
      */
     public <T extends Message> void unAdvertise(RosNote note) {
-        Topic<T> unAdvTopic = new Topic(note.topic, note.type, getClient());
-        unAdvTopic.unadvertise();
+        if (null != getClient()) {
+            Topic<T> unAdvTopic = new Topic(note.topic, note.type, getClient());
+            unAdvTopic.unadvertise();
+        }
     }
 
     /**
@@ -260,18 +283,20 @@ public class RosCUtil {
      * @param <T>      返回数据类型
      */
     public <T extends Message> void subscribe(String topic, Class<? extends T> type, RosSubscribeCallback<T> callback) {
-        Topic<T> subTopic = new Topic<>(topic, type, getClient());
-        subTopic.subscribe(new MessageHandler<T>() {
-            @Override
-            public void onMessage(T message) {
-                RosThreadUtils.runOnUiThread(() -> callback.success(message));
-            }
+        if (null != getClient()) {
+            Topic<T> subTopic = new Topic<>(topic, type, getClient());
+            subTopic.subscribe(new MessageHandler<T>() {
+                @Override
+                public void onMessage(T message) {
+                    RosThreadUtils.runOnUiThread(() -> callback.success(message));
+                }
 
-            @Override
-            public void onErrorMessage(ErrorMsg errorMsg) {
-                RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
-            }
-        });
+                @Override
+                public void onErrorMessage(ErrorMsg errorMsg) {
+                    RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
+                }
+            });
+        }
     }
 
     /**
@@ -283,18 +308,20 @@ public class RosCUtil {
      * @param <T>          返回数据类型
      */
     public <T extends Message> void subscribe(RosNote note, RosSubscribeCallback<T> callback) {
-        Topic<T> subTopic = new Topic(note.topic, note.type, getClient());
-        subTopic.subscribe(new MessageHandler<T>() {
-            @Override
-            public void onMessage(T message) {
-                RosThreadUtils.runOnUiThread(() -> callback.success(message));
-            }
+        if (null != getClient()) {
+            Topic<T> subTopic = new Topic(note.topic, note.type, getClient());
+            subTopic.subscribe(new MessageHandler<T>() {
+                @Override
+                public void onMessage(T message) {
+                    RosThreadUtils.runOnUiThread(() -> callback.success(message));
+                }
 
-            @Override
-            public void onErrorMessage(ErrorMsg errorMsg) {
-                RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
-            }
-        });
+                @Override
+                public void onErrorMessage(ErrorMsg errorMsg) {
+                    RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
+                }
+            });
+        }
     }
 
     /**
@@ -304,8 +331,10 @@ public class RosCUtil {
      * @param type  返回数据类型
      */
     public <T extends Message> void unSubscribe(String topic, Class<? extends T> type) {
-        Topic<T> subTopic = new Topic<>(topic, type, getClient());
-        subTopic.unsubscribe();
+        if (null != getClient()) {
+            Topic<T> subTopic = new Topic<>(topic, type, getClient());
+            subTopic.unsubscribe();
+        }
     }
 
     /**
@@ -315,8 +344,11 @@ public class RosCUtil {
      * @param {note}.type  返回数据类型
      */
     public void unSubscribe(RosNote note) {
-        Topic subTopic = new Topic(note.topic, note.type, getClient());
-        subTopic.unsubscribe();
+        if (null != getClient()) {
+            Topic subTopic = new Topic(note.topic, note.type, getClient());
+            subTopic.unsubscribe();
+            //send(new Unsubscribe(note.topic));
+        }
     }
 
     /**
@@ -329,19 +361,21 @@ public class RosCUtil {
      */
     public <CallType extends Message, ResponseType extends Message> void callWithHandler
     (String service, Class<? extends ResponseType> responseType, CallType args, RosServiceCallback<ResponseType> callback) {
-        Service<CallType, ResponseType> callService = new Service(service, args.getClass(), responseType, getClient());
-        callService.callWithHandler(args, new MessageHandler<ResponseType>() {
-            @Override
-            public void onMessage(ResponseType message) {
-                RosThreadUtils.runOnUiThread(() -> callback.success(message));
-            }
+        if (null != getClient()) {
+            Service<CallType, ResponseType> callService = new Service(service, args.getClass(), responseType, getClient());
+            callService.callWithHandler(args, new MessageHandler<ResponseType>() {
+                @Override
+                public void onMessage(ResponseType message) {
+                    RosThreadUtils.runOnUiThread(() -> callback.success(message));
+                }
 
-            @Override
-            public void onErrorMessage(ErrorMsg errorMsg) {
-                RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
-            }
-        });
-        //return service.callBlocking(args);
+                @Override
+                public void onErrorMessage(ErrorMsg errorMsg) {
+                    RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
+                }
+            });
+            //return service.callBlocking(args);
+        }
     }
 
 
@@ -355,19 +389,21 @@ public class RosCUtil {
      */
     public <CallType extends Message, ResponseType extends Message> void callWithHandler
     (RosNote note, CallType args, RosServiceCallback<ResponseType> callback) {
-        Service<CallType, ResponseType> callService = new Service(note.topic, args.getClass(), note.type, getClient());
-        callService.callWithHandler(args, new MessageHandler<ResponseType>() {
-            @Override
-            public void onMessage(ResponseType message) {
-                RosThreadUtils.runOnUiThread(() -> callback.success(message));
-            }
+        if (null != getClient()) {
+            Service<CallType, ResponseType> callService = new Service(note.topic, args.getClass(), note.type, getClient());
+            callService.callWithHandler(args, new MessageHandler<ResponseType>() {
+                @Override
+                public void onMessage(ResponseType message) {
+                    RosThreadUtils.runOnUiThread(() -> callback.success(message));
+                }
 
-            @Override
-            public void onErrorMessage(ErrorMsg errorMsg) {
-                RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
-            }
-        });
-        //return service.callBlocking(args);
+                @Override
+                public void onErrorMessage(ErrorMsg errorMsg) {
+                    RosThreadUtils.runOnUiThread(() -> callback.error(errorMsg));
+                }
+            });
+            //return service.callBlocking(args);
+        }
     }
 
     /**
@@ -377,7 +413,9 @@ public class RosCUtil {
         if (null != eventBus) {
             eventBus.unregister(this);
         }
-        getClient().disconnect();
+        if (null != getClient()) {
+            getClient().disconnect();
+        }
     }
 
     @Subscribe

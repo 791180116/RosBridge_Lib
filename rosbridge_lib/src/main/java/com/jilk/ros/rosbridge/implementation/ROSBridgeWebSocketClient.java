@@ -83,7 +83,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
     @Override
     public void onMessage(String message) {
         //if (debug) System.out.println("<ROS " + message);
-        if (debug) Log.d("rosBridge", "<ROS " + message);
+        if (debug && !message.contains("\"topic\": \"/actuator\"")) Log.i("rosBridge", "<ROS " + message);
         if (useEventBus) EventBus.getDefault().post(JSONObject.parseObject(message));
         Operation operation = Operation.toOperation(message, classes);
         if (operation == null) {
@@ -116,7 +116,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
             if (handler != null && !operation.id.isEmpty()) {
                 handler.onMessage(operation.id, msg);
             } else {
-                if (debug) {
+                if (debug && !message.contains("\"topic\": \"/actuator\"")) {
                     Log.d("rosBridge", "No handler: id# " + operation.id + ", op:" + operation.op);
                     //System.out.print("No handler: id# " + operation.id + ", op:" + operation.op);
                 }
@@ -131,7 +131,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
                         e.printStackTrace();
                     }
                     //System.out.println("Publish " + publish.topic);
-                    Log.d("rosBridge", "Publish " + publish.topic);
+                    //Log.d("rosBridge", "Publish " + publish.topic);
                 } else if (operation instanceof ServiceResponse) {
                     ServiceResponse serviceResponse = ((ServiceResponse) operation);
                     try {
@@ -142,7 +142,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
                         e.printStackTrace();
                     }
                     //System.out.println("Service Response " + serviceResponse.service);
-                    Log.d("rosBridge", "Service Response " + serviceResponse.service);
+                    //Log.d("rosBridge", "Service Response " + serviceResponse.service);
                 }
             }
         }
@@ -181,7 +181,7 @@ public class ROSBridgeWebSocketClient extends WebSocketClient {
             }
         } catch (Exception ex) {
             //System.out.println("Exception in Websocket close hack.");
-            if (debug) Log.d("rosBridge", "Exception in Websocket close hack.");
+            if (debug) Log.e("rosBridge", "Exception in Websocket close hack.");
             ex.printStackTrace();
         }
     }
