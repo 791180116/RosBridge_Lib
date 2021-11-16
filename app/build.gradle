@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 29
@@ -45,5 +46,9 @@ dependencies {
     implementation 'com.alibaba:fastjson:1.2.78'
     implementation 'org.greenrobot:eventbus:3.0.0'
     implementation project(path: ':rosbridge_lib')
-    //implementation 'com.github.791180116:RosBridge_Lib:0.2'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    //implementation 'com.github.791180116:RosBridge_Lib:0.5'
+}
+repositories {
+    mavenCentral()
 }
